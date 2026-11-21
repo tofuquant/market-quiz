@@ -154,6 +154,8 @@ body.pro .ticker{border-bottom-color:#5cc8ff}
 .ctx{background:var(--panel2);border-left:4px solid var(--amber);padding:8px 10px;margin:4px 0 12px;font-size:20px;color:#c3cfdf}
 .ctx b{display:block;font-family:"Silkscreen";font-weight:400;font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:3px}
 body.pro .qtext{font-size:25px}
+.how.keys{font-size:17px;color:var(--muted)}.how.keys b{color:var(--amber);font-weight:400}
+@media (hover:none),(pointer:coarse){.how.keys{display:none}}
 .hidden{display:none!important}
 @media (prefers-reduced-motion:reduce){.ticker .track,.pop,.flash,.opt.wrong{animation:none}}
 </style>
@@ -352,7 +354,7 @@ function showHome(ed){
       <div class="stat"><b>${TIME}s</b><span>to close</span></div>
       <div class="stat"><b style="color:${prev?(prev.pnl>=0?"var(--green)":"var(--red)"):"var(--amber)"}">${prev?pct(prev.pnl):"—"}</b><span>your P&amp;L</span></div>
     </div>
-    ${mode==='pro'?'<div class="how">For PMs, private bankers and investment counsellors: each call starts from a real event that week and asks what it means across <u>macro, equities, fixed income and FX/commodities</u>. Same P&amp;L scoring.</div>':''}<div class="how"><em>Right</em> = +1% to +2%, more if you're fast · <u>Streak</u> = +0.5x leverage each · <i>Wrong</i> = −1.5% and leverage resets</div>
+    ${'<div class="how keys">⌨ <b>A–D</b> or <b>1–4</b> answer · <b>Enter</b> start / next · <b>M</b> switch desk · <b>Esc</b> back to desk</div>'}${mode==='pro'?'<div class="how">For PMs, private bankers and investment counsellors: each call starts from a real event that week and asks what it means across <u>macro, equities, fixed income and FX/commodities</u>. Same P&amp;L scoring.</div>':''}<div class="how"><em>Right</em> = +1% to +2%, more if you're fast · <u>Streak</u> = +0.5x leverage each · <i>Wrong</i> = −1.5% and leverage resets</div>
   </section>
   <div class="btnrow">
     ${prev?`<button class="btn" id="see">VIEW STATEMENT</button><button class="btn ghost" id="go">TRADE AGAIN · PAPER</button>`
@@ -578,6 +580,35 @@ function shareCard(ed,res){
     showPreview("Long-press or right-click the image to copy or save it.");
   }
 }
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey||e.repeat) return;
+  const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable)) return;
+  const k=e.key, K=k.toUpperCase(), q=s=>document.querySelector(s);
+  const click=el=>{ if(el&&!el.disabled){ e.preventDefault(); el.click(); return true } return false };
+  const modal=q(".modal");
+  if(modal){ if(k==="Escape"||k==="Enter") click(modal.querySelector("#mclose")); return; }
+  if(k==="Escape"){ if(view!=="home"){ e.preventDefault(); sfx.select(); showHome(currentEd) } return; }
+  if(view==="game"){
+    const i="ABCD".indexOf(K)>=0?"ABCD".indexOf(K):"1234".indexOf(k);
+    if(i>=0 && K.length===1){ const opts=document.querySelectorAll(".opt"); click(opts[i]); return; }
+    if(k==="Enter"||k===" "||k==="ArrowRight") click(q("#next"));
+    return;
+  }
+  if(view==="home"){
+    if(k==="Enter"||k===" ") click(q("#go"));
+    else if(K==="M"){ const b=q('.mbtn:not(.on)'); click(b); }
+    else if(K==="V") click(q("#see"));
+    else if(K==="W") click(q("#arch"));
+    return;
+  }
+  if(view==="result"||q("#copy")){
+    if(K==="S") click(q("#copy"));
+    else if(k==="Enter"||k==="ArrowRight") click(q("#other")) || click(q("#home"));
+    return;
+  }
+});
 
 setMode(mode);
 showHome(EDITIONS[0]);
